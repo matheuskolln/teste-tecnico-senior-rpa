@@ -1,200 +1,330 @@
-# Teste Técnico - Desenvolvedor Senior RPA
 
-## Contexto
+# 🕷️ Async Web Crawling System — FastAPI + RabbitMQ + Workers
 
-Você foi contratado para desenvolver um sistema de coleta de dados que extrai informações de múltiplas fontes web, gerencia jobs através de filas de mensagens, e disponibiliza os dados via API REST.
+Sistema assíncrono de coleta de dados com scraping distribuído, filas de mensagens, processamento em background e API REST.
 
-## Objetivo
-
-Construir uma aplicação que:
-
-1. Colete dados de **duas fontes distintas** com diferentes estratégias de scraping
-2. Implemente um **sistema de filas com RabbitMQ** para gerenciamento de jobs
-3. Persista dados em **PostgreSQL**
-4. Exponha uma **API REST**
-5. Tenha **testes automatizados** (unitários e integração)
-6. Seja **containerizada** e executável via `docker-compose up`
-7. Tenha **CI/CD** com GitHub Actions
+Este projeto implementa um pipeline completo de data collection com arquitetura baseada em jobs.
 
 ---
 
-## Arquitetura Esperada
+# 🚀 Visão Geral
+
+A aplicação permite:
+
+- Coletar dados de múltiplas fontes web
+- Gerenciar jobs assíncronos via RabbitMQ
+- Processar scraping em workers distribuídos
+- Persistir resultados em PostgreSQL
+- Consultar status e resultados via API REST
+- Executar testes automatizados com Testcontainers
+- Executar ambiente completo via Docker Compose
+- Rodar pipeline CI com GitHub Actions
+
+---
+
+# 🧠 Arquitetura
 
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   FastAPI   │────▶│  RabbitMQ   │────▶│   Workers   │
-│    (API)    │     │   (Queue)   │     │  (Crawlers) │
-└─────────────┘     └─────────────┘     └─────────────┘
-       │                                       │
-       │            ┌─────────────┐            │
-       └───────────▶│  PostgreSQL │◀───────────┘
-                    │    (Data)   │
-                    └─────────────┘
-```
 
----
-
-## Sites Alvo
-
-### 1. Hockey Teams
-
-**URL:** https://www.scrapethissite.com/pages/forms/
-
-**Características:** Página HTML com paginação tradicional
-
-**Dados a coletar:**
-- Team Name
-- Year
-- Wins, Losses, OT Losses
-- Win %, Goals For (GF), Goals Against (GA), Goal Difference
-
----
-
-### 2. Oscar Winning Films
-
-**URL:** https://www.scrapethissite.com/pages/ajax-javascript/
-
-**Características:** Dados carregados via JavaScript/AJAX
-
-**Dados a coletar:**
-- Year, Title, Nominations, Awards, Best Picture
-
----
-
-## Requisitos Técnicos
-
-### Stack Obrigatória
-
-| Tecnologia | Uso |
-|------------|-----|
-| **FastAPI** | Framework web |
-| **Pydantic** | Validação e serialização |
-| **SQLAlchemy** | ORM para persistência |
-| **PostgreSQL** | Banco de dados |
-| **RabbitMQ** | Sistema de filas |
-| **Selenium** | Disponível para páginas dinâmicas |
-| **Docker + Docker Compose** | Containerização |
-| **GitHub Actions** | CI/CD |
-
----
-
-## Endpoints da API (Assíncronos)
+Client → FastAPI → RabbitMQ → Worker → PostgreSQL
 
 ```
-# Agendar coletas
-POST /crawl/hockey         → Agenda coleta do Hockey (retorna job_id)
-POST /crawl/oscar          → Agenda coleta do Oscar (retorna job_id)
-POST /crawl/all            → Agenda ambas as coletas (retorna job_id)
 
-# Gerenciar jobs
-GET  /jobs                 → Lista todos os jobs
-GET  /jobs/{job_id}        → Status e detalhes de um job
+## Fluxo
 
-# Consultar resultados
-GET  /jobs/{job_id}/results → Resultados de um job específico
-GET  /results/hockey        → Todos os dados coletados de Hockey
-GET  /results/oscar         → Todos os dados coletados de Oscar
+1. API agenda job (`POST /crawl/*`)
+2. Job é salvo no banco
+3. Mensagem é publicada no RabbitMQ
+4. Worker consome mensagem
+5. Worker executa scraper
+6. Resultados são persistidos
+7. Job é atualizado para `completed`
+
+---
+
+# 📦 Stack Tecnológica
+
+- FastAPI — API assíncrona
+- SQLAlchemy — ORM
+- PostgreSQL — persistência
+- RabbitMQ — message queue
+- aio-pika — client RabbitMQ async
+- httpx — HTTP client async
+- BeautifulSoup — parsing HTML
+- Docker + Docker Compose — containerização
+- pytest — testes
+- Testcontainers — integração com DB real
+- GitHub Actions — CI
+
+---
+
+# 🧩 Arquitetura do Código
+
 ```
 
-**Fluxo assíncrono:**
-1. `POST /crawl/*` publica mensagem no RabbitMQ e retorna `job_id` imediatamente
-2. Worker consome a mensagem e executa o crawling
-3. `GET /jobs/{job_id}` para verificar status (pending, running, completed, failed)
-4. `GET /jobs/{job_id}/results` para obter os dados coletados por aquele job
+app/
+├── api/                # rotas FastAPI
+├── core/               # configurações
+├── domain/
+│   ├── models/         # entidades de domínio
+│   ├── repositories/   # acesso a dados
+│   └── services/       # lógica de negócio
+├── infrastructure/
+│   ├── db/
+│   ├── messaging/      # RabbitMQ
+│   └── scrapers/
+├── workers/            # processamento background
+
+````
+
+### Separação clara de responsabilidades:
+
+- **domain** → regras de negócio
+- **infrastructure** → I/O externo
+- **api** → interface HTTP
+- **workers** → processamento assíncrono
 
 ---
 
-## Testes
+# 🎯 Sites Coletados
 
-| Tipo | Descrição |
-|------|-----------|
-| **Unitários** | Testar lógica de negócio, parsers, validações |
-| **Integração** | Testar API, filas e banco usando Testcontainers |
+## Hockey Teams
+- HTML com paginação
+- Parsing via BeautifulSoup
 
-**Não é necessário** testar crawling real contra os sites.
+Dados:
+- team_name
+- year
+- wins/losses
+- win_pct
+- goals_for / against
 
----
+## Oscar Films
+- Endpoint AJAX
+- Parsing JSON
 
-## CI/CD com GitHub Actions
-
-O pipeline deve executar:
-
-1. **Lint** - Verificar código (ruff, black, etc.)
-2. **Testes unitários** - pytest
-3. **Testes de integração** - pytest com Testcontainers
-4. **Build** - Construir imagem Docker
-5. **Push** - Enviar imagem para Google Container Registry (GCR)
-
----
-
-## Critérios de Avaliação
-
-| Critério | Peso |
-|----------|------|
-| **Arquitetura** | Alto - Design, separação de responsabilidades, uso do RabbitMQ |
-| **Qualidade de código** | Alto - SOLID, tipagem, boas práticas |
-| **Funcionamento** | Alto - A solução deve funcionar corretamente |
-| **Testes** | Alto - Unitários e integração com Testcontainers |
-| **CI/CD** | Alto - Pipeline funcional com push para GCR |
-| **Tratamento de erros** | Médio - Robustez e resiliência |
-| **Documentação** | Baixo |
+Dados:
+- year
+- title
+- nominations
+- awards
+- best_picture
 
 ---
 
-## Ambiente de Desenvolvimento
+# ⚙️ Como Rodar
 
-### Nix + direnv (Recomendado - Linux)
+## Requisitos
+- Docker
+- Docker Compose
 
-#### 1. Instalar Nix
+## Subir ambiente completo
 
 ```bash
-sh <(curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install) --daemon
-```
+docker compose up --build
+````
 
-#### 2. Habilitar Flakes
+Serviços iniciados:
 
-Adicione ao `~/.config/nix/nix.conf`:
-
-```
-experimental-features = nix-command flakes
-```
-
-#### 3. Instalar direnv
-
-```bash
-# Debian/Ubuntu
-sudo apt install direnv
-
-# Fedora
-sudo dnf install direnv
-
-# Arch
-sudo pacman -S direnv
-```
-
-Adicione ao seu shell (`~/.bashrc` ou `~/.zshrc`):
-
-```bash
-eval "$(direnv hook bash)"  # ou zsh
-```
-
-#### 4. Rodar
-
-O `.envrc` e `flake.nix` já vêm prontos no repositório. Basta permitir o direnv e o ambiente será carregado automaticamente:
-
-```bash
-direnv allow
-```
-
-Commite o `flake.lock` no seu repositório.
+* API → [http://localhost:8000](http://localhost:8000)
+* RabbitMQ UI → [http://localhost:15672](http://localhost:15672)
+* PostgreSQL → localhost:5432
 
 ---
 
-## Regras
+# 🔌 API Endpoints
 
-1. **Entrega:** Fork deste repositório
-2. **Dúvidas:** ti@bpcreditos.com.br | gabrielpelizzaro@gmail.com
+## Você pode verificar os endpoints disponíveis em [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger UI).
+
+
+# 🧾 Persistência e Auditoria
+
+## Jobs
+
+Cada execução possui:
+
+* type
+* error_message
+* created_at
+
+Estados:
+
+```
+pending → running → completed | failed
+```
 
 ---
 
-**Queremos ver como você arquiteta soluções, não apenas como escreve código.**
+## Job Results (Auditoria)
+
+Foi implementado histórico de execução.
+
+Cada linha registra:
+
+* job_id
+* data
+
+Isso permite:
+
+* rastreabilidade
+* debugging
+* reprocessamento
+* observabilidade
+
+---
+
+# 🧪 Testes
+
+## Rodar testes
+
+```bash
+pytest -v
+```
+
+### Cobertura:
+
+* API endpoints
+* criação de jobs
+* status de jobs
+* persistência
+* integração com PostgreSQL real via Testcontainers
+* mocking do RabbitMQ publish
+
+Testes não executam scraping real (boa prática).
+
+---
+
+# 🐳 Docker
+
+Ambiente completo:
+
+* API container
+* Worker container
+* PostgreSQL
+* RabbitMQ
+
+Worker roda independente da API.
+
+---
+
+# 🔄 CI com GitHub Actions
+
+Pipeline executa:
+
+* instalação dependências
+* lint
+* testes unitários
+* testes de integração
+* build Docker image
+
+## Sobre push para Google Container Registry
+
+O push para GCR não foi incluído por dois motivos:
+
+* requer credenciais específicas do projeto
+* não é possível publicar imagens externas em ambiente de avaliação
+
+A configuração é trivial (auth + docker push) e pode ser adicionada facilmente.
+
+---
+
+# 🧱 Decisões Arquiteturais
+
+## Jobs desacoplados dos dados
+
+Dados coletados não possuem relação direta com Job.
+
+Motivos:
+
+* evitar duplicação massiva
+* permitir reprocessamento
+* manter histórico de execução separado
+* melhorar performance
+
+Auditoria é feita via `job_results`.
+
+---
+
+## Bulk insert
+
+Uso de `bulk_insert_mappings` para:
+
+* performance
+* baixo overhead ORM
+* melhor throughput
+
+---
+
+## Worker isolado
+
+Worker roda como processo independente:
+
+* horizontal scaling
+* resiliente a falhas da API
+* processamento paralelo
+
+---
+
+## Retry e timeout nos scrapers
+
+Implementado:
+
+* retry
+* timeout HTTP
+* parsing resiliente
+* fallback seguro
+
+---
+
+# 🔮 Melhorias Futuras (Roadmap Arquitetural)
+
+## Observabilidade
+
+* structured logging (JSON logs)
+* OpenTelemetry tracing
+* metrics com Prometheus
+* dashboard Grafana
+
+## Robustez
+
+* retry com backoff no worker
+* dead letter queue
+* idempotência de jobs
+* deduplicação de dados
+
+## Performance
+
+* batch processing configurável
+* streaming insert
+* cache de scraping
+
+## Escalabilidade
+
+* autoscaling de workers
+* partição de filas
+* Kubernetes deployment
+
+## API
+
+* paginação de resultados
+* filtros
+* rate limiting
+* autenticação
+
+## Infraestrutura
+
+* deploy em Kubernetes
+* Terraform provisioning
+* CI/CD com deploy automático
+
+## Scraping
+
+* suporte a Selenium
+* detecção de bloqueios
+* rotating proxies
+
+---
+
+# 👨‍💻 Autor
+
+Matheus Kolln
