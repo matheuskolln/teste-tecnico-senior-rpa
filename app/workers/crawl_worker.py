@@ -46,8 +46,22 @@ async def process_message(message: aio_pika.IncomingMessage):
         finally:
             db.close()
 
+
+async def connect_with_retry(url, retries=20, delay=3):
+    for i in range(retries):
+        try:
+            print("Connecting to RabbitMQ...")
+            return await aio_pika.connect_robust(url)
+        except Exception:
+            print(f"RabbitMQ not ready — retry {i+1}/{retries}")
+            await asyncio.sleep(delay)
+
+    raise RuntimeError("Could not connect to RabbitMQ")
+
+
 async def main():
-    connection = await aio_pika.connect_robust(settings.rabbitmq_url)
+    connection = await connect_with_retry(settings.rabbitmq_url)
+
     channel = await connection.channel()
 
     hockey_queue = await channel.declare_queue("hockey_queue", durable=True)
@@ -57,7 +71,7 @@ async def main():
     await oscar_queue.consume(process_message)
 
     print("Worker running...")
-    await asyncio.Future()  # keep alive
+    await asyncio.Future()
 
 
 if __name__ == "__main__":
