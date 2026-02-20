@@ -28,7 +28,10 @@ jobs:
       - name: Format check (black)
         run: black --check .
 
-      - name: Run tests
+      - name: Run pytest
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+          RABBITMQ_URL: amqp://guest:guest@localhost:5672/
         run: pytest -v
 
 
