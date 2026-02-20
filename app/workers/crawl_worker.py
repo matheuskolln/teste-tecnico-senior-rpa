@@ -9,7 +9,8 @@ from app.domain.models.job import JobStatus
 
 from app.infrastructure.scrapers.hockey import scrape_hockey
 from app.infrastructure.scrapers.oscar import scrape_oscar
-
+from app.domain.repositories.hockey_repository import bulk_insert_hockey
+from app.domain.repositories.oscar_repository import bulk_insert_oscar
 
 SCRAPER_MAP = {
     "hockey": scrape_hockey,
@@ -35,7 +36,11 @@ async def process_message(message: aio_pika.IncomingMessage):
             if scraper is None:
                 raise ValueError(f"Unknown job type: {job_type}")
             result = await scraper()
-            print("Result:", len(result))
+
+            if job_type == "hockey":
+                bulk_insert_hockey(db, result)
+            elif job_type == "oscar":
+                bulk_insert_oscar(db, result)
 
             update_job_status(db, job_id, JobStatus.completed)
 
