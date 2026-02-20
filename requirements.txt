@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+pydantic
+sqlalchemy
+psycopg2-binary
+aio-pika
+beautifulsoup4
+requests
+selenium
+alembic
+pytest
+pytest-asyncio
+testcontainers
+python-dotenv
