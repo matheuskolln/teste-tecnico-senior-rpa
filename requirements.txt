@@ -13,3 +13,4 @@ pytest-asyncio
 testcontainers
 python-dotenv
 pydantic-settings
+aio-pika
