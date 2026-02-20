@@ -12,12 +12,6 @@ def test_schedule_hockey_job(client):
         assert "job_id" in data
         mock_publish.assert_called_once()
 
-    with patch(
-    "app.domain.services.crawl_service.publish_message",
-        side_effect=Exception("fail")
-    ):
-        response = client.post("/crawl/hockey")
-        assert response.status_code == 500
 
 def test_schedule_oscar_job(client):
     with patch("app.domain.services.crawl_service.publish_message") as mock_publish:

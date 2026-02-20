@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.domain.models.job import Job, JobType
+from app.domain.models.job import Job, JobType, JobStatus
 
 
 def create_job(db: Session, job_type: JobType) -> Job:
@@ -17,3 +17,15 @@ def list_jobs(db: Session):
 
 def get_job(db: Session, job_id):
     return db.get(Job, job_id)
+
+def update_job_status(db: Session, job_id: str, status: JobStatus):
+    job = db.get(Job, job_id)
+
+    if not job:
+        raise ValueError(f"Job {job_id} not found")
+
+    job.status = status
+    db.commit()
+    db.refresh(job)
+
+    return job

@@ -5,7 +5,10 @@ from app.core.config import settings
 
 
 async def publish_message(queue_name: str, payload: dict):
-    connection = await aio_pika.connect_robust(settings.rabbitmq_url)
+    connection = await aio_pika.connect_robust(
+        settings.rabbitmq_url,
+        timeout=5
+    )
 
     async with connection:
         channel = await connection.channel()
