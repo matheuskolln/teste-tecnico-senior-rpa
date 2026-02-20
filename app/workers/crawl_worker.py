@@ -31,8 +31,11 @@ async def process_message(message: aio_pika.IncomingMessage):
 
             update_job_status(db, job_id, JobStatus.running)
 
-            scraper = SCRAPER_MAP[job_type]
-            await scraper()
+            scraper = SCRAPER_MAP.get(job_type)
+            if scraper is None:
+                raise ValueError(f"Unknown job type: {job_type}")
+            result = await scraper()
+            print("Result:", len(result))
 
             update_job_status(db, job_id, JobStatus.completed)
 
