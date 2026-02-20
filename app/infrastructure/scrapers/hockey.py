@@ -9,14 +9,14 @@ BASE_URL = "https://www.scrapethissite.com/pages/forms/"
 def safe_int(value: str, default=0):
     try:
         return int(value.strip())
-    except:
+    except Exception:
         return default
 
 
 def safe_float(value: str, default=0.0):
     try:
         return float(value.strip())
-    except:
+    except Exception:
         return default
 
 

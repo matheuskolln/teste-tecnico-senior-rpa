@@ -1,7 +1,13 @@
 from logging.config import fileConfig
 
+from app.core.config import settings
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
+
+
+from app.infrastructure.db.base import Base
+from app.infrastructure.db import Job, HockeyTeam, OscarFilm, JobResult  # noqa
+from app.core.config import settings
 
 from alembic import context
 import sys
@@ -12,7 +18,6 @@ sys.path.append(os.getcwd())
 # access to the values within the .ini file in use.
 config = context.config
 
-from app.core.config import settings
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
 # Interpret the config file for Python logging.
@@ -26,9 +31,6 @@ if config.config_file_name is not None:
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-from app.infrastructure.db.base import Base
-from app.infrastructure.db import *  # importa models
-from app.core.config import settings
 
 target_metadata = Base.metadata
 

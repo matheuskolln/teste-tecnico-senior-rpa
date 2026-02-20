@@ -1,4 +1,3 @@
-import pytest
 from bs4 import BeautifulSoup
 from app.infrastructure.scrapers.hockey import safe_int, safe_float, get_text
 
