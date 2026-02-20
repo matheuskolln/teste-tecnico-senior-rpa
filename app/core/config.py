@@ -1,10 +1,10 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     app_name: str = "rpa-crawler"
-    database_url: str = "postgresql://postgres:postgres@db:5432/app"
-    rabbitmq_url: str = "amqp://guest:guest@rabbitmq/"
+    database_url: str
+    rabbitmq_url: str
 
     class Config:
         env_file = ".env"
