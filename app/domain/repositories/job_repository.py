@@ -35,3 +35,6 @@ def create_job_result(db: Session, job_id: str, data: dict):
     result = JobResult(job_id=job_id, data=data)
     db.add(result)
     db.commit()
+
+def get_job_results(db: Session, job_id: str):
+    return db.query(JobResult).filter(JobResult.job_id == job_id).first()
