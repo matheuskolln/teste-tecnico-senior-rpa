@@ -1,3 +1,4 @@
+from app.domain.models.job_result import JobResult
 from sqlalchemy.orm import Session
 
 from app.domain.models.job import Job, JobType, JobStatus
@@ -29,3 +30,8 @@ def update_job_status(db: Session, job_id: str, status: JobStatus):
     db.refresh(job)
 
     return job
+
+def create_job_result(db: Session, job_id: str, data: dict):
+    result = JobResult(job_id=job_id, data=data)
+    db.add(result)
+    db.commit()

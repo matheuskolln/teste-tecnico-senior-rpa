@@ -4,7 +4,7 @@ import aio_pika
 
 from app.core.config import settings
 from app.infrastructure.db.session import SessionLocal
-from app.domain.repositories.job_repository import update_job_status
+from app.domain.repositories.job_repository import create_job_result, update_job_status
 from app.domain.models.job import JobStatus
 
 from app.infrastructure.scrapers.hockey import scrape_hockey
@@ -36,6 +36,8 @@ async def process_message(message: aio_pika.IncomingMessage):
             if scraper is None:
                 raise ValueError(f"Unknown job type: {job_type}")
             result = await scraper()
+
+            create_job_result(db, job_id, result)
 
             if job_type == "hockey":
                 bulk_insert_hockey(db, result)
