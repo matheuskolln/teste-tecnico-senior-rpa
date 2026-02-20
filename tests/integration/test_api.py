@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
-
 # -----------------------------
 # CRAWL ENDPOINTS
 # -----------------------------
+
 
 def test_schedule_hockey_job(client):
     with patch("app.domain.services.crawl_service.publish_message") as mock_publish:
@@ -43,6 +43,7 @@ def test_schedule_all_jobs(client):
 # JOB MANAGEMENT
 # -----------------------------
 
+
 def test_job_lifecycle(client):
 
     with patch("app.domain.services.crawl_service.publish_message"):
@@ -70,6 +71,7 @@ def test_job_lifecycle(client):
 # -----------------------------
 # RESULTS ENDPOINTS
 # -----------------------------
+
 
 def test_results_endpoints_exist(client):
     """

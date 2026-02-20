@@ -15,7 +15,7 @@ async def crawl_hockey(db: Session = Depends(get_db)):
     return {
         "job_id": job.id,
         "status_url": f"/jobs/{job.id}",
-        "results_url": f"/jobs/{job.id}/results"
+        "results_url": f"/jobs/{job.id}/results",
     }
 
 
@@ -25,7 +25,7 @@ async def crawl_oscar(db: Session = Depends(get_db)):
     return {
         "job_id": job.id,
         "status_url": f"/jobs/{job.id}",
-        "results_url": f"/jobs/{job.id}/results"
+        "results_url": f"/jobs/{job.id}/results",
     }
 
 

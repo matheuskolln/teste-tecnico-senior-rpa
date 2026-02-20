@@ -2,7 +2,6 @@ import httpx
 from bs4 import BeautifulSoup
 from app.infrastructure.scrapers.utils import fetch_with_retry
 
-
 BASE_URL = "https://www.scrapethissite.com/pages/forms/"
 
 
@@ -29,9 +28,7 @@ async def scrape_hockey():
     results = []
     page = 1
 
-    async with httpx.AsyncClient(
-        timeout=httpx.Timeout(10.0, connect=5.0)
-    ) as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as client:
         while True:
             url = f"{BASE_URL}?page_num={page}"
             response = await fetch_with_retry(client, url)
@@ -46,17 +43,19 @@ async def scrape_hockey():
                 break
 
             for row in rows:
-                results.append({
-                    "team_name": get_text(row, ".name"),
-                    "year": safe_int(get_text(row, ".year")),
-                    "wins": safe_int(get_text(row, ".wins")),
-                    "losses": safe_int(get_text(row, ".losses")),
-                    "ot_losses": safe_int(get_text(row, ".ot-losses")),
-                    "win_pct": safe_float(get_text(row, ".pct")),
-                    "goals_for": safe_int(get_text(row, ".gf")),
-                    "goals_against": safe_int(get_text(row, ".ga")),
-                    "goal_diff": safe_int(get_text(row, ".diff")),
-                })
+                results.append(
+                    {
+                        "team_name": get_text(row, ".name"),
+                        "year": safe_int(get_text(row, ".year")),
+                        "wins": safe_int(get_text(row, ".wins")),
+                        "losses": safe_int(get_text(row, ".losses")),
+                        "ot_losses": safe_int(get_text(row, ".ot-losses")),
+                        "win_pct": safe_float(get_text(row, ".pct")),
+                        "goals_for": safe_int(get_text(row, ".gf")),
+                        "goals_against": safe_int(get_text(row, ".ga")),
+                        "goal_diff": safe_int(get_text(row, ".diff")),
+                    }
+                )
 
             page += 1
 

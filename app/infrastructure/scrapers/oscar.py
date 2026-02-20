@@ -20,13 +20,15 @@ async def scrape_oscar():
             data = response.json()
 
             for movie in data:
-                results.append({
-                    "year": year,
-                    "title": movie.get("title", "").strip(),
-                    "nominations": movie.get("nominations", 0),
-                    "awards": movie.get("awards", 0),
-                    "best_picture": movie.get("best_picture", False),
-                })
+                results.append(
+                    {
+                        "year": year,
+                        "title": movie.get("title", "").strip(),
+                        "nominations": movie.get("nominations", 0),
+                        "awards": movie.get("awards", 0),
+                        "best_picture": movie.get("best_picture", False),
+                    }
+                )
 
     print(f"Collected {len(results)} oscar films")
     return results

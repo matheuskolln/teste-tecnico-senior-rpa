@@ -1,4 +1,4 @@
-from app.infrastructure.db.base import Base # noqa
+from app.infrastructure.db.base import Base  # noqa
 
 from app.domain.models.job import Job  # noqa
 from app.domain.models.hockey_team import HockeyTeam  # noqa

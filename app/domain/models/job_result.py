@@ -4,6 +4,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 import uuid
 
+
 class JobResult(Base):
     __tablename__ = "job_results"
 
