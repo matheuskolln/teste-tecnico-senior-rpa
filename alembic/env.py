@@ -7,7 +7,6 @@ from sqlalchemy import pool
 
 from app.infrastructure.db.base import Base
 from app.infrastructure.db import Job, HockeyTeam, OscarFilm, JobResult  # noqa
-from app.core.config import settings
 
 from alembic import context
 import sys
